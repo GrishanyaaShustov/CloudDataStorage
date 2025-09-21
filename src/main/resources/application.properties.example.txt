@@ -1,0 +1,16 @@
+spring.application.name=clouddatastorage
+server.port=8081
+
+spring.jpa.hibernate.ddl-auto=validate
+spring.datasource.url=jdbc:postgresql://172.31.206.172:5432/postgres
+#or localhost
+spring.datasource.username=postgres
+spring.datasource.password=BD_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.show-sql=false
+
+yandex.s3.access-key = ACCESS-KEY
+yandex.s3.secret-key = SECRET-KEY
+yandex.s3.endpoint = https://storage.yandexcloud.net
+yandex.s3.region = ru-central1
+yandex.s3.bucket = clouddatastorage
