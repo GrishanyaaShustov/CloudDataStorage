@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+/.mvn/wrapper/maven-wrapper.properties
+/src/main/resources/application.properties
+/src/test/java/com/study/clouddatastorage/ClouddatastorageApplicationTests.java
