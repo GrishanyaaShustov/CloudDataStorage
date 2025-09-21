@@ -1,10 +1,12 @@
 package com.study.clouddatastorage.controllers;
 
 import com.study.clouddatastorage.requests.fileRequests.DeleteFileRequest;
+import com.study.clouddatastorage.requests.fileRequests.RenameFileRequest;
 import com.study.clouddatastorage.requests.fileRequests.ReplaceFileRequest;
 import com.study.clouddatastorage.services.fileService.CreateFileService;
 import com.study.clouddatastorage.services.fileService.DeleteFileService;
 import com.study.clouddatastorage.services.fileService.ReplaceFileService;
+import com.study.clouddatastorage.services.fileService.UpdateFileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,11 @@ public class FileController {
 
     @Autowired
     private ReplaceFileService replaceFileService;
+
+    @Autowired
+    private UpdateFileService updateFileService;
+
+    // Created all CRUD services for files
 
     @PostMapping("/upload")
     ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam(value = "folderId", required = false) Long folderId, Principal principal){
@@ -53,6 +60,16 @@ public class FileController {
         try {
             replaceFileService.replaceFile(request.getFileName(), request.getCurrentFolderId(), request.getNewFolderId(), principal.getName());
             return ResponseEntity.ok("File successfully replaced");
+        } catch (IllegalArgumentException | AccessDeniedException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/rename")
+    ResponseEntity<?> renameFile(@RequestBody RenameFileRequest request, Principal principal){
+        try {
+            updateFileService.renameFile(request.getOldFileName(), request.getNewFileName(), request.getFolderId(), principal.getName());
+            return ResponseEntity.ok("File successfully renamed");
         } catch (IllegalArgumentException | AccessDeniedException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
