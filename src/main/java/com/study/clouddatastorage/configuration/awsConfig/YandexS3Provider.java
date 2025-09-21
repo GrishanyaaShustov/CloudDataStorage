@@ -51,4 +51,14 @@ public class YandexS3Provider {
                 .build();
         s3Client.copyObject(request);
     }
+
+    public InputStream downloadFile(String key) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(key)
+                .build();
+
+        // Получаем InputStream для чтения содержимого файла
+        return s3Client.getObject(getObjectRequest);
+    }
 }

@@ -1,13 +1,7 @@
 package com.study.clouddatastorage.controllers;
 
-import com.study.clouddatastorage.requests.fileRequests.CopyFileRequest;
-import com.study.clouddatastorage.requests.fileRequests.DeleteFileRequest;
-import com.study.clouddatastorage.requests.fileRequests.RenameFileRequest;
-import com.study.clouddatastorage.requests.fileRequests.ReplaceFileRequest;
-import com.study.clouddatastorage.services.fileService.CreateFileService;
-import com.study.clouddatastorage.services.fileService.DeleteFileService;
-import com.study.clouddatastorage.services.fileService.ReplaceFileService;
-import com.study.clouddatastorage.services.fileService.UpdateFileService;
+import com.study.clouddatastorage.requests.fileRequests.*;
+import com.study.clouddatastorage.services.fileService.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +27,9 @@ public class FileController {
 
     @Autowired
     private UpdateFileService updateFileService;
+
+    @Autowired
+    private GetFileService getFileService;
 
     // Realized all CRUD services for files
 
@@ -82,6 +79,15 @@ public class FileController {
             createFileService.copyFile(request.getFileName(), request.getFolderId(), request.getCopyFolderId(), principal.getName());
             return ResponseEntity.ok("File successfully copied");
         } catch (IllegalArgumentException | IOException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/download")
+    ResponseEntity<?> downloadFile(@RequestBody DownloadFileRequest request, Principal principal){
+        try{
+            return getFileService.downloadFile(request.getFileName(), request.getFolderId(), principal.getName());
+        } catch (AccessDeniedException | IllegalArgumentException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
