@@ -2,11 +2,11 @@ package com.study.clouddatastorage.configuration.awsConfig;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.InputStream;
@@ -22,7 +22,7 @@ public class YandexS3Provider {
     @Autowired
     private YandexS3Config config;
 
-    public String uploadFile(String key, InputStream inputStream, long size, String contentType) {
+    public void uploadFile(String key, InputStream inputStream, long size, String contentType) {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(config.getBucket())
                 .key(key)
@@ -30,6 +30,13 @@ public class YandexS3Provider {
                 .build();
 
         s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, size));
-        return key; // возвращаем ключ, чтобы сохранить в БД
+    }
+
+    public void deleteFile(String key){
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(key)
+                .build();
+        s3Client.deleteObject(deleteObjectRequest);
     }
 }
