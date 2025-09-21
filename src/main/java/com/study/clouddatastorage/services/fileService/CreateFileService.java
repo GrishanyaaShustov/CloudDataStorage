@@ -23,10 +23,13 @@ public class CreateFileService {
 
     @Autowired
     private CloudFileRepository cloudFileRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private FolderRepository folderRepository;
+
 
     public void uploadFile(MultipartFile file, String userEmail, Long folderId)
             throws IOException, AccessDeniedException, IllegalArgumentException {
@@ -61,5 +64,55 @@ public class CreateFileService {
         cloudFile.setFolder(folder); // null = корневая папка
 
         cloudFileRepository.save(cloudFile);
+    }
+
+    public void copyFile(String fileName, Long folderId, Long copyFolderId, String userEmail) throws AccessDeniedException, IOException {
+        if (folderId != null && folderId.equals(copyFolderId))
+            throw new IllegalArgumentException("Cannot copy file in the same folder");
+
+        User user = userRepository.findUserByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+
+        Folder folder = null;
+        if (folderId != null) {
+            folder = folderRepository.findFolderById(folderId)
+                    .orElseThrow(() -> new IllegalArgumentException("Folder does not exist"));
+        }
+
+        Folder copyFolder = null;
+        if (copyFolderId != null) {
+            copyFolder = folderRepository.findFolderById(copyFolderId)
+                    .orElseThrow(() -> new IllegalArgumentException("Copy folder does not exist"));
+        }
+
+        if (cloudFileRepository.existsByNameAndFolder(fileName, copyFolder))
+            throw new IllegalArgumentException("File with that name already exists in the destination folder");
+
+        CloudFile file = cloudFileRepository.findByNameAndFolder(fileName, folder)
+                .orElseThrow(() -> new IllegalArgumentException("File with that name does not exist"));
+
+        if (!file.getUser().getId().equals(user.getId()))
+            throw new AccessDeniedException("Access denied");
+
+        // Генерация нового ключа для копии
+        String newKey = UUID.randomUUID() + "_" + file.getName();
+
+        // Копирование файла в S3
+        try {
+            provider.copyFile(file.getS3Key(), newKey);
+        } catch (Exception e) {
+            throw new IOException("Failed to copy file in S3", e);
+        }
+
+        // Создаем новый объект в базе
+        CloudFile copiedFile = new CloudFile();
+        copiedFile.setName(file.getName());
+        copiedFile.setS3Key(newKey);
+        copiedFile.setContentType(file.getContentType());
+        copiedFile.setSize(file.getSize());
+        copiedFile.setUser(user);
+        copiedFile.setFolder(copyFolder);
+
+        cloudFileRepository.save(copiedFile);
     }
 }

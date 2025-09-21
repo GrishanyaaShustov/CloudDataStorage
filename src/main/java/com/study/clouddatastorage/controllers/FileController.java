@@ -1,5 +1,6 @@
 package com.study.clouddatastorage.controllers;
 
+import com.study.clouddatastorage.requests.fileRequests.CopyFileRequest;
 import com.study.clouddatastorage.requests.fileRequests.DeleteFileRequest;
 import com.study.clouddatastorage.requests.fileRequests.RenameFileRequest;
 import com.study.clouddatastorage.requests.fileRequests.ReplaceFileRequest;
@@ -33,7 +34,7 @@ public class FileController {
     @Autowired
     private UpdateFileService updateFileService;
 
-    // Created all CRUD services for files
+    // Realized all CRUD services for files
 
     @PostMapping("/upload")
     ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam(value = "folderId", required = false) Long folderId, Principal principal){
@@ -71,6 +72,16 @@ public class FileController {
             updateFileService.renameFile(request.getOldFileName(), request.getNewFileName(), request.getFolderId(), principal.getName());
             return ResponseEntity.ok("File successfully renamed");
         } catch (IllegalArgumentException | AccessDeniedException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/copy")
+    ResponseEntity<?> copyFile(@RequestBody CopyFileRequest request, Principal principal){
+        try {
+            createFileService.copyFile(request.getFileName(), request.getFolderId(), request.getCopyFolderId(), principal.getName());
+            return ResponseEntity.ok("File successfully copied");
+        } catch (IllegalArgumentException | IOException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

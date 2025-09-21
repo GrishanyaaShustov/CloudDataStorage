@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.InputStream;
@@ -38,5 +40,15 @@ public class YandexS3Provider {
                 .key(key)
                 .build();
         s3Client.deleteObject(deleteObjectRequest);
+    }
+
+    public void copyFile(String sourceKey, String destinationKey) {
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                .sourceBucket(config.getBucket())
+                .sourceKey(sourceKey)
+                .destinationBucket(config.getBucket())
+                .destinationKey(destinationKey)
+                .build();
+        s3Client.copyObject(request);
     }
 }
