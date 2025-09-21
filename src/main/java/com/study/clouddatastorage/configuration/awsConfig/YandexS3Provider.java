@@ -1,14 +1,21 @@
 package com.study.clouddatastorage.configuration.awsConfig;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.InputStream;
+
 @Service
+@AllArgsConstructor
+@NoArgsConstructor
 public class YandexS3Provider {
 
     @Autowired
@@ -16,4 +23,42 @@ public class YandexS3Provider {
 
     @Autowired
     private YandexS3Config config;
+
+    public void uploadFile(String key, InputStream inputStream, long size, String contentType) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(key)
+                .contentType(contentType)
+                .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, size));
+    }
+
+    public void deleteFile(String key){
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(key)
+                .build();
+        s3Client.deleteObject(deleteObjectRequest);
+    }
+
+    public void copyFile(String sourceKey, String destinationKey) {
+        CopyObjectRequest request = CopyObjectRequest.builder()
+                .sourceBucket(config.getBucket())
+                .sourceKey(sourceKey)
+                .destinationBucket(config.getBucket())
+                .destinationKey(destinationKey)
+                .build();
+        s3Client.copyObject(request);
+    }
+
+    public InputStream downloadFile(String key) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(key)
+                .build();
+
+        // Получаем InputStream для чтения содержимого файла
+        return s3Client.getObject(getObjectRequest);
+    }
 }
